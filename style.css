@@ -1,0 +1,84 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+body {
+    background-color: #f6f6f6;
+    padding: 20px;
+}
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+header h1 {
+    color: #ef5350;
+    margin-bottom: 15px;
+    font-size: 2.5rem;
+}
+#search {
+    padding: 10px 15px;
+    width: 100%;
+    max-width: 400px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    font-size: 16px;
+    outline: none;
+}
+#search:focus {
+    border-color: #ef5350;
+}
+#pokedex-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.card {
+    background-color: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+    text-transform: capitalize;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.card img {
+    width: 100px;
+    height: 100px;
+}
+.card .id {
+    color: #777;
+    font-size: 0.9rem;
+}
+.card .name {
+    font-weight: bold;
+    margin: 10px 0 5px 0;
+}
+.card .type {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: white;
+    font-weight: bold;
+}
+/* Màu sắc theo hệ Pokémon */
+.fire { background-color: #FDDFDF; color: #E69D9D !important; border: 1px solid #E69D9D;}
+.grass { background-color: #DEFDE0; color: #8FD594 !important; border: 1px solid #8FD594;}
+.electric { background-color: #FCF7DE; color: #E6D686 !important; border: 1px solid #E6D686;}
+.water { background-color: #DEF3FD; color: #90CAD7 !important; border: 1px solid #90CAD7;}
+.ground { background-color: #f4e7da; color: #b79c7d !important; border: 1px solid #b79c7d;}
+.rock { background-color: #d5d5d4; color: #999999 !important; border: 1px solid #999999;}
+.fairy { background-color: #fceaef; color: #ea9fb0 !important; border: 1px solid #ea9fb0;}
+.poison { background-color: #f8e5f8; color: #cb84cb !important; border: 1px solid #cb84cb;}
+.bug { background-color: #f8d5a3; color: #c4995f !important; border: 1px solid #c4995f;}
+.dragon { background-color: #97b3e6; color: #6281ba !important; border: 1px solid #6281ba;}
+.psychic { background-color: #eaeda1; color: #b0b35b !important; border: 1px solid #b0b35b;}
+.flying { background-color: #F5F5F5; color: #999 !important; border: 1px solid #999;}
+.normal { background-color: #F5F5F5; color: #999 !important; border: 1px solid #999;}
