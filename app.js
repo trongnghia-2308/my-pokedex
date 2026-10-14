@@ -2,32 +2,60 @@ const container = document.getElementById('pokedex-container');
 const searchInput = document.getElementById('search');
 let allPokemon = [];
 
-// Gọi API lấy dữ liệu 151 Pokémon
-const fetchPokemon = async () => {
-    const promises = [];
-    for (let i = 1; i <= 151; i++) {
-        const url = `https://pokeapi.co{i}`;
-        promises.push(fetch(url).then((res) => res.json()));
-    }
+// 🔴 THAY THẾ CHUỖI DƯỚI ĐÂY BẰNG MÃ ID BẢNG TÍNH CỦA BẠN
+const SHEET_ID = '1Plf6Zruakg58eFVhDGXtIaVc8m7ExxKtIVBp2TViZCA'; 
+const SHEET_TITLE = 'Trang tính1'; // Tên tab sheet ở góc dưới bên trái của bạn
+const SHEET_RANGE = 'A2:M200';   // Lấy dữ liệu từ dòng 2 (bỏ dòng tiêu đề) đến dòng 200
+
+// Đường dẫn API xuất dữ liệu từ Google Sheet sang định dạng JSON gọn nhẹ
+const FULL_URL = `https://google.com{SHEET_ID}/gviz/tq?sheet=${SHEET_TITLE}&range=${SHEET_RANGE}`;
+
+const fetchPokemonFromSheet = async () => {
     try {
-        allPokemon = await Promise.all(promises);
+        const res = await fetch(FULL_URL);
+        const text = await res.text();
+        
+        // Cắt bỏ phần dữ liệu thừa mà Google trả về để lấy chuỗi JSON sạch
+        const jsonData = JSON.parse(text.substring(47, text.length - 2));
+        const rows = jsonData.table.rows;
+
+        // Xử lý dữ liệu thô từ các cột trong bảng tính
+        allPokemon = rows.map(row => {
+            const cells = row.c;
+            return {
+                imgUrl: cells[0] ? cells[0].v : '', // Cột A: Link ảnh đại diện
+                name: cells[1] ? cells[1].v : '',   // Cột B: Tên Pokemon
+                type1: cells[2] ? cells[2].v : '',  // Cột C: Hệ 1
+                type2: cells[3] ? cells[3].v : '',  // Cột D: Hệ 2
+                ability1: cells[4] ? cells[4].v : '', // Cột E: Kỹ năng chính
+                ability2: cells[5] ? cells[5].v : '', // Cột F: Kỹ năng ẩn
+                tier: cells[6] ? cells[6].v : '',   // Cột G: Phân hạng Tier
+                hp: cells[7] ? cells[7].v : 0,      // Cột H: Chỉ số HP
+                atk: cells[8] ? cells[8].v : 0,     // Cột I: Chỉ số Atk
+                def: cells[9] ? cells[9].v : 0,     // Cột J: Chỉ số Def
+                spa: cells[10] ? cells[10].v : 0,   // Cột K: Chỉ số SpA
+                spd: cells[11] ? cells[11].v : 0,   // Cột L: Chỉ số SpD
+                spe: cells[12] ? cells[12].v : 0    // Cột M: Chỉ số Spe
+            };
+        }).filter(p => p.name !== ''); // Lọc bỏ hàng trống nếu có
+
         displayPokemonTable(allPokemon);
     } catch (error) {
-        console.error("Lỗi tải API:", error);
+        console.error("Lỗi khi đọc dữ liệu từ Google Sheet:", error);
     }
 };
 
-// Hàm tạo bảng hiển thị dữ liệu giống Smogon
+// Hàm hiển thị bảng dữ liệu chuẩn Smogon
 const displayPokemonTable = (pokemonList) => {
-    // Tạo cấu trúc khung bảng (Table)
     let tableHTML = `
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 25%;">Pokemon</th>
-                        <th style="width: 15%;">Types</th>
-                        <th style="width: 20%;">Abilities</th>
+                        <th style="width: 20%;">Pokemon</th>
+                        <th style="width: 12%;">Types</th>
+                        <th style="width: 18%;">Abilities</th>
+                        <th style="width: 8%; text-align:center;">Tier</th>
                         <th class="stat-cell">HP</th>
                         <th class="stat-cell">Atk</th>
                         <th class="stat-cell">Def</th>
@@ -39,70 +67,54 @@ const displayPokemonTable = (pokemonList) => {
                 <tbody>
     `;
 
-    // Duyệt qua từng Pokemon để tạo các hàng (Tr) dữ liệu
     tableHTML += pokemonList.map((pokemon) => {
-        // Lấy danh sách các hệ (tối đa 2 hệ)
-        const typesHTML = pokemon.types.map(t => 
-            `<span class="type-badge ${t.type.name}">${t.type.name}</span>`
-        ).join('');
+        // Xử lý hiển thị hệ (tạo badge màu cho cả hệ 1 và hệ 2 nếu có)
+        let typesHTML = `<span class="type-badge ${pokemon.type1.toLowerCase()}">${pokemon.type1}</span>`;
+        if (pokemon.type2) {
+            typesHTML += ` <span class="type-badge ${pokemon.type2.toLowerCase()}">${pokemon.type2}</span>`;
+        }
 
-        // Lấy danh sách kỹ năng
-        const abilitiesHTML = pokemon.abilities.map(a => 
-            `<div>${a.ability.name.replace('-', ' ')}</div>`
-        ).join('');
-
-        // Lấy chính xác các chỉ số cơ bản (Base Stats) từ mảng stats của API
-        const hp = pokemon.stats[0].base_stat;
-        const atk = pokemon.stats[1].base_stat;
-        const def = pokemon.stats[2].base_stat;
-        const spa = pokemon.stats[3].base_stat;
-        const spd = pokemon.stats[4].base_stat;
-        const spe = pokemon.stats[5].base_stat;
-
-        // Dùng ảnh dạng pixel (versions.generation-v.black-white.animated) hoặc front_default nhỏ
-        const pixelImg = pokemon.sprites.versions['generation-v']['black-white'].animated.front_default || pokemon.sprites.front_default;
+        // Xử lý hiển thị kỹ năng hàng dọc
+        let abilitiesHTML = `<div>${pokemon.ability1}</div>`;
+        if (pokemon.ability2) {
+            abilitiesHTML += `<div style="color: #777; font-size: 0.8rem;">${pokemon.ability2} (H)</div>`;
+        }
 
         return `
             <tr>
                 <td>
                     <div class="poke-info">
-                        <img src="${pixelImg}" alt="${pokemon.name}">
+                        <img src="${pokemon.imgUrl}" alt="${pokemon.name}">
                         <span>${pokemon.name}</span>
                     </div>
                 </td>
-                <td>
-                    <div class="types-container">${typesHTML}</div>
-                </td>
-                <td class="abilities-cell">
-                    ${abilitiesHTML}
-                </td>
-                <td class="stat-cell">${hp}</td>
-                <td class="stat-cell">${atk}</td>
-                <td class="stat-cell">${def}</td>
-                <td class="stat-cell">${spa}</td>
-                <td class="stat-cell">${spd}</td>
-                <td class="stat-cell">${spe}</td>
+                <td><div class="types-container">${typesHTML}</div></td>
+                <td class="abilities-cell">${abilitiesHTML}</td>
+                <td style="text-align: center; font-weight: bold; color: #555;">${pokemon.tier}</td>
+                <td class="stat-cell">${pokemon.hp}</td>
+                <td class="stat-cell">${pokemon.atk}</td>
+                <td class="stat-cell">${pokemon.def}</td>
+                <td class="stat-cell">${pokemon.spa}</td>
+                <td class="stat-cell">${pokemon.spd}</td>
+                <td class="stat-cell">${pokemon.spe}</td>
             </tr>
         `;
     }).join('');
 
-    tableHTML += `
-                </tbody>
-            </table>
-        </div>
-    `;
-
+    tableHTML += `</tbody></table></div>`;
     container.innerHTML = tableHTML;
 };
 
-// Tìm kiếm thời gian thực theo Tên hoặc Hệ
+// Ô tìm kiếm lọc theo Tên, Hệ hoặc Phân hạng Tier
 searchInput.addEventListener('input', (e) => {
     const value = e.target.value.toLowerCase();
     const filteredPokemon = allPokemon.filter(pokemon => 
         pokemon.name.toLowerCase().includes(value) ||
-        pokemon.types.some(t => t.type.name.toLowerCase().includes(value))
+        pokemon.type1.toLowerCase().includes(value) ||
+        (pokemon.type2 && pokemon.type2.toLowerCase().includes(value)) ||
+        pokemon.tier.toLowerCase().includes(value)
     );
     displayPokemonTable(filteredPokemon);
 });
 
-fetchPokemon();
+fetchPokemonFromSheet();
