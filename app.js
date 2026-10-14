@@ -1,53 +1,118 @@
-const container = document.getElementById('pokedex-container');
-const searchInput = document.getElementById('search');
-let allPokemon = []; // Lưu danh sách gốc để tìm kiếm
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+body {
+    background-color: #f6f6f6;
+    padding: 20px;
+}
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+header h1 {
+    color: #ef5350;
+    margin-bottom: 15px;
+    font-size: 2.5rem;
+}
+#search {
+    padding: 10px 15px;
+    width: 100%;
+    max-width: 400px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    font-size: 16px;
+    outline: none;
+}
+#search:focus {
+    border-color: #ef5350;
+}
 
-// Gọi API lấy dữ liệu 151 Pokémon thế hệ 1
-const fetchPokemon = async () => {
-    const promises = [];
-    for (let i = 1; i <= 151; i++) {
-        const url = `https://pokeapi.co{i}`;
-        promises.push(fetch(url).then((res) => res.json()));
-    }
-    
-    try {
-        // Đợi tất cả API phản hồi cùng lúc (tăng tốc độ tải)
-        allPokemon = await Promise.all(promises);
-        displayPokemon(allPokemon);
-    } catch (error) {
-        console.error("Lỗi khi gọi API:", error);
-    }
-};
+/* Style cho Bảng Pokémon */
+.table-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+}
+th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+th {
+    background-color: #f4f5f7;
+    color: #555;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+tr:hover {
+    background-color: #f9f9fafb;
+}
 
-// Hàm hiển thị Pokémon ra màn hình
-const displayPokemon = (pokemonList) => {
-    const pokemonHTML = pokemonList.map((pokemon) => {
-        // Lấy hệ đầu tiên của Pokemon
-        const type = pokemon.types[0].type.name; 
-        const id = pokemon.id.toString().padStart(3, '0'); // Định dạng 001, 002...
-        
-        return `
-            <div class="card">
-                <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
-                <div class="id">#${id}</div>
-                <div class="name">${pokemon.name}</div>
-                <div class="type ${type}">${type}</div>
-            </div>
-        `;
-    }).join('');
-    
-    container.innerHTML = pokemonHTML;
-};
+/* Định dạng các thành phần bên trong hàng */
+.poke-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: capitalize;
+    font-weight: bold;
+}
+.poke-info img {
+    width: 40px;
+    height: 40px;
+}
+.types-container {
+    display: flex;
+    gap: 5px;
+}
+.type-badge {
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 55px;
+}
+.abilities-cell {
+    color: #4a90e2;
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+.stat-cell {
+    text-align: center;
+    font-weight: 500;
+}
 
-// Xử lý sự kiện tìm kiếm
-searchInput.addEventListener('input', (e) => {
-    const value = e.target.value.toLowerCase();
-    const filteredPokemon = allPokemon.filter(pokemon => 
-        pokemon.name.toLowerCase().includes(value) || 
-        pokemon.id.toString() === value
-    );
-    displayPokemon(filteredPokemon);
-});
-
-// Chạy hàm gọi dữ liệu khi tải trang
-fetchPokemon();
+/* Màu hệ chuẩn bách khoa toàn thư */
+.normal { background-color: #A8A77A; }
+.fire { background-color: #EE8130; }
+.water { background-color: #6390F0; }
+.electric { background-color: #F7D02C; color: #000 !important; }
+.grass { background-color: #7AC74C; }
+.ice { background-color: #96D9D6; color: #000 !important; }
+.fighting { background-color: #C22E28; }
+.poison { background-color: #A33EA1; }
+.ground { background-color: #E2BF65; }
+.flying { background-color: #A98FF3; }
+.psychic { background-color: #F95587; }
+.bug { background-color: #A6B91A; }
+.rock { background-color: #B6A136; }
+.ghost { background-color: #705746; }
+.dragon { background-color: #6F35FC; }
+.steel { background-color: #B7B7CE; }
+.fairy { background-color: #D685AD; }
+.dark { background-color: #705746; }
