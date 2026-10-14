@@ -1,118 +1,108 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-}
-body {
-    background-color: #f6f6f6;
-    padding: 20px;
-}
-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-header h1 {
-    color: #ef5350;
-    margin-bottom: 15px;
-    font-size: 2.5rem;
-}
-#search {
-    padding: 10px 15px;
-    width: 100%;
-    max-width: 400px;
-    border: 2px solid #ddd;
-    border-radius: 20px;
-    font-size: 16px;
-    outline: none;
-}
-#search:focus {
-    border-color: #ef5350;
-}
+const container = document.getElementById('pokedex-container');
+const searchInput = document.getElementById('search');
+let allPokemon = [];
 
-/* Style cho Bảng Pokémon */
-.table-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    overflow-x: auto;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    font-size: 0.9rem;
-}
-th, td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #eee;
-    vertical-align: middle;
-}
-th {
-    background-color: #f4f5f7;
-    color: #555;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-}
-tr:hover {
-    background-color: #f9f9fafb;
-}
+// Gọi API lấy dữ liệu 151 Pokémon
+const fetchPokemon = async () => {
+    const promises = [];
+    for (let i = 1; i <= 151; i++) {
+        const url = `https://pokeapi.co{i}`;
+        promises.push(fetch(url).then((res) => res.json()));
+    }
+    try {
+        allPokemon = await Promise.all(promises);
+        displayPokemonTable(allPokemon);
+    } catch (error) {
+        console.error("Lỗi tải API:", error);
+    }
+};
 
-/* Định dạng các thành phần bên trong hàng */
-.poke-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-transform: capitalize;
-    font-weight: bold;
-}
-.poke-info img {
-    width: 40px;
-    height: 40px;
-}
-.types-container {
-    display: flex;
-    gap: 5px;
-}
-.type-badge {
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    color: #fff;
-    font-weight: bold;
-    text-transform: uppercase;
-    text-align: center;
-    min-width: 55px;
-}
-.abilities-cell {
-    color: #4a90e2;
-    font-size: 0.85rem;
-    line-height: 1.3;
-}
-.stat-cell {
-    text-align: center;
-    font-weight: 500;
-}
+// Hàm tạo bảng hiển thị dữ liệu giống Smogon
+const displayPokemonTable = (pokemonList) => {
+    // Tạo cấu trúc khung bảng (Table)
+    let tableHTML = `
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Pokemon</th>
+                        <th style="width: 15%;">Types</th>
+                        <th style="width: 20%;">Abilities</th>
+                        <th class="stat-cell">HP</th>
+                        <th class="stat-cell">Atk</th>
+                        <th class="stat-cell">Def</th>
+                        <th class="stat-cell">SpA</th>
+                        <th class="stat-cell">SpD</th>
+                        <th class="stat-cell">Spe</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
 
-/* Màu hệ chuẩn bách khoa toàn thư */
-.normal { background-color: #A8A77A; }
-.fire { background-color: #EE8130; }
-.water { background-color: #6390F0; }
-.electric { background-color: #F7D02C; color: #000 !important; }
-.grass { background-color: #7AC74C; }
-.ice { background-color: #96D9D6; color: #000 !important; }
-.fighting { background-color: #C22E28; }
-.poison { background-color: #A33EA1; }
-.ground { background-color: #E2BF65; }
-.flying { background-color: #A98FF3; }
-.psychic { background-color: #F95587; }
-.bug { background-color: #A6B91A; }
-.rock { background-color: #B6A136; }
-.ghost { background-color: #705746; }
-.dragon { background-color: #6F35FC; }
-.steel { background-color: #B7B7CE; }
-.fairy { background-color: #D685AD; }
-.dark { background-color: #705746; }
+    // Duyệt qua từng Pokemon để tạo các hàng (Tr) dữ liệu
+    tableHTML += pokemonList.map((pokemon) => {
+        // Lấy danh sách các hệ (tối đa 2 hệ)
+        const typesHTML = pokemon.types.map(t => 
+            `<span class="type-badge ${t.type.name}">${t.type.name}</span>`
+        ).join('');
+
+        // Lấy danh sách kỹ năng
+        const abilitiesHTML = pokemon.abilities.map(a => 
+            `<div>${a.ability.name.replace('-', ' ')}</div>`
+        ).join('');
+
+        // Lấy chính xác các chỉ số cơ bản (Base Stats) từ mảng stats của API
+        const hp = pokemon.stats[0].base_stat;
+        const atk = pokemon.stats[1].base_stat;
+        const def = pokemon.stats[2].base_stat;
+        const spa = pokemon.stats[3].base_stat;
+        const spd = pokemon.stats[4].base_stat;
+        const spe = pokemon.stats[5].base_stat;
+
+        // Dùng ảnh dạng pixel (versions.generation-v.black-white.animated) hoặc front_default nhỏ
+        const pixelImg = pokemon.sprites.versions['generation-v']['black-white'].animated.front_default || pokemon.sprites.front_default;
+
+        return `
+            <tr>
+                <td>
+                    <div class="poke-info">
+                        <img src="${pixelImg}" alt="${pokemon.name}">
+                        <span>${pokemon.name}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="types-container">${typesHTML}</div>
+                </td>
+                <td class="abilities-cell">
+                    ${abilitiesHTML}
+                </td>
+                <td class="stat-cell">${hp}</td>
+                <td class="stat-cell">${atk}</td>
+                <td class="stat-cell">${def}</td>
+                <td class="stat-cell">${spa}</td>
+                <td class="stat-cell">${spd}</td>
+                <td class="stat-cell">${spe}</td>
+            </tr>
+        `;
+    }).join('');
+
+    tableHTML += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    container.innerHTML = tableHTML;
+};
+
+// Tìm kiếm thời gian thực theo Tên hoặc Hệ
+searchInput.addEventListener('input', (e) => {
+    const value = e.target.value.toLowerCase();
+    const filteredPokemon = allPokemon.filter(pokemon => 
+        pokemon.name.toLowerCase().includes(value) ||
+        pokemon.types.some(t => t.type.name.toLowerCase().includes(value))
+    );
+    displayPokemonTable(filteredPokemon);
+});
+
+fetchPokemon();
