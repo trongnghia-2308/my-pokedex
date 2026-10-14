@@ -10,15 +10,20 @@ const fetchPokemon = async () => {
         promises.push(fetch(url).then((res) => res.json()));
     }
     
-    // Đợi tất cả API phản hồi cùng lúc (tăng tốc độ tải)
-    allPokemon = await Promise.all(promises);
-    displayPokemon(allPokemon);
+    try {
+        // Đợi tất cả API phản hồi cùng lúc (tăng tốc độ tải)
+        allPokemon = await Promise.all(promises);
+        displayPokemon(allPokemon);
+    } catch (error) {
+        console.error("Lỗi khi gọi API:", error);
+    }
 };
 
 // Hàm hiển thị Pokémon ra màn hình
 const displayPokemon = (pokemonList) => {
     const pokemonHTML = pokemonList.map((pokemon) => {
-        const type = pokemon.types[0].type.name; // Lấy hệ chính
+        // Lấy hệ đầu tiên của Pokemon
+        const type = pokemon.types[0].type.name; 
         const id = pokemon.id.toString().padStart(3, '0'); // Định dạng 001, 002...
         
         return `
